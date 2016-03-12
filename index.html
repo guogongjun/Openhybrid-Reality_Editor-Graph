@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+		<title>Line Chart</title>
+		<script src="Chart.js"></script>
+		<script src="object.js"></script>
+        <script src="objectIO.js"></script>
+         <script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<div style="width:50%">
+			<div>
+				<canvas id="canvas" height="300" width="300"></canvas>
+			</div>
+		</div>
+
+
+	<script>
+	
+	// object for Hybridobject
+	var obj = new HybridObject();
+	
+	// code for line chart
+	var canvas = document.getElementById('canvas'),
+    ctx = canvas.getContext('2d'),
+    startingData = {
+      labels: [1,2,3,4,5,6,7,8,9],
+      datasets: [
+          {
+              fillColor: "rgba(220,220,220,0.2)",
+              strokeColor: "rgba(220,220,220,1)",
+              pointColor: "#ff4",
+              pointStrokeColor: "#fff",
+              data: [0,0,0,0,0,0]
+          },
+          
+      ]
+    },
+    latestLabel = startingData.labels[0];
+
+// Reduce the animation steps for demo clarity.
+var myLiveChart = new Chart(ctx).Line(startingData, {animationSteps: 15});
+
+
+//To recieve the incoming data from server and update the chart values
+obj.object.on("object", function (msg) {
+        var data = JSON.parse(msg)
+        if (obj.read("sensor", data)) {
+           // slider.value = obj.read("<your IOpoint>", data) * 255;
+			myLiveChart.addData([obj.read("sensor", data) * 255], ++latestLabel);
+			myLiveChart.removeData();
+        }
+    });
+
+
+//Sending request to object "sensor" for getting values
+setInterval(function(){ obj.readRequest("sensor");}, 50);
+
+	
+	</script>
+	</body>
+</html>
